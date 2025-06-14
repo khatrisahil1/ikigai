@@ -20,3 +20,5 @@ A mindful habit tracker designed to be your lifestyle compass.
 * **HealthKit (for future integrations)**
 
 > **Note:** This project is currently in the early stages of development. The features and vision are subject to change. 
+
+
