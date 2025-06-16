@@ -1,10 +1,3 @@
-//
-//  ContentViewModel.swift
-//  Ikigai
-//
-//  Created by SAHIL KHATRI on 16/06/25.
-//
-
 import Foundation
 import SwiftUI
 
@@ -19,38 +12,104 @@ class ContentViewModel: ObservableObject {
     @Published var completions: [HabitCompletionLog] = []
     @Published var userProfile = UserProfile()
     
+    enum TimeFilter: String, CaseIterable, Identifiable {
+        case today = "Today"
+        case week = "This Week"
+        case all = "All Time"
+        var id: Self { self }
+    }
+    @Published var selectedTimeFilter: TimeFilter = .all
+    
     @Published var isShowingAddHabitSheet = false
     @Published var selectedLogForDetail: HabitCompletionLog?
-    
     @Published var isShowingConfetti: Bool = false
     
+    enum SortOrder {
+        case name, creationDate
+    }
+    @Published var sortOrder: SortOrder = .creationDate
+    
+    var sortedHabits: [Habit] {
+        switch sortOrder {
+        case .name:
+            return habits.sorted { $0.name < $1.name }
+        case .creationDate:
+            return habits.sorted { $0.creationDate > $1.creationDate }
+        }
+    }
+    
+    private var filteredCompletions: [HabitCompletionLog] {
+        switch selectedTimeFilter {
+        case .today:
+            return completions.filter { Calendar.current.isDateInToday($0.date) }
+        case .week:
+            guard let startOfWeek = Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: .now)) else {
+                return []
+            }
+            return completions.filter { $0.date >= startOfWeek }
+        case .all:
+            return completions
+        }
+    }
+    
     var totalCompletions: Int {
-        return completions.count
+        return filteredCompletions.count
     }
     
     var uniqueDaysActive: Int {
-        let uniqueDays = Set(completions.map { Calendar.current.startOfDay(for: $0.date) })
+        let uniqueDays = Set(filteredCompletions.map { Calendar.current.startOfDay(for: $0.date) })
         return uniqueDays.count
     }
     
     var moodSummary: [MoodStat] {
-        let moods = completions.compactMap { $0.mood }
+        let moods = filteredCompletions.compactMap { $0.mood }
+        let moodCounts = moods.reduce(into: [:]) { counts, mood in counts[mood, default: 0] += 1 }
+        return moodCounts.map { MoodStat(mood: $0.key, count: $0.value) }.sorted { $0.count > $1.count }
+    }
+    
+    var currentStreak: Int {
+        guard !completions.isEmpty else { return 0 }
+        let uniqueCompletionDays = Set(completions.map { Calendar.current.startOfDay(for: $0.date) })
+        let sortedDays = uniqueCompletionDays.sorted(by: { $0 > $1 })
         
-        let moodCounts = moods.reduce(into: [:]) { counts, mood in
-            counts[mood, default: 0] += 1
+        guard let mostRecentDay = sortedDays.first,
+              Calendar.current.isDateInToday(mostRecentDay) || Calendar.current.isDateInYesterday(mostRecentDay)
+        else { return 0 }
+        
+        var streakCount = 0
+        var currentDay = mostRecentDay
+        
+        for day in sortedDays {
+            if Calendar.current.isDate(day, inSameDayAs: currentDay) {
+                streakCount += 1
+                currentDay = Calendar.current.date(byAdding: .day, value: -1, to: currentDay)!
+            } else {
+                break
+            }
         }
-        
-        return moodCounts.map { MoodStat(mood: $0.key, count: $0.value) }
-                         .sorted { $0.count > $1.count }
+        return streakCount
     }
     
     init() {
         loadData()
     }
     
-    // MARK: - Core Logic
+    func deleteAllHabits() {
+        habits.removeAll()
+        completions.removeAll()
+        userProfile = UserProfile()
+        saveData()
+    }
     
-    func toggleCompletion(for habit: Habit) {
+    func markAllAsComplete() {
+        for habit in habits {
+            if !isHabitCompletedToday(habitID: habit.id) {
+                toggleCompletion(for: habit, showDetailSheet: false)
+            }
+        }
+    }
+    
+    func toggleCompletion(for habit: Habit, showDetailSheet: Bool = true) {
         if isHabitCompletedToday(habitID: habit.id) {
             completions.removeAll { $0.habitId == habit.id && Calendar.current.isDateInToday($0.date) }
             if userProfile.totalXP >= habit.experiencePoints {
@@ -61,12 +120,13 @@ class ContentViewModel: ObservableObject {
             completions.append(newCompletion)
             userProfile.totalXP += habit.experiencePoints
             
-            selectedLogForDetail = newCompletion
+            if showDetailSheet {
+                selectedLogForDetail = newCompletion
+            }
             
             let completedTodayCount = completions.filter { Calendar.current.isDateInToday($0.date) }.count
             
             if !habits.isEmpty && completedTodayCount == habits.count {
-                // --- UPDATED: The call now includes the file extension ---
                 SoundManager.shared.playSound(named: "TingSound", withExtension: "wav")
                 isShowingConfetti = true
                 
@@ -78,22 +138,18 @@ class ContentViewModel: ObservableObject {
         saveData()
     }
     
-    // The rest of the file remains exactly the same...
-    
     func deleteHabit(at offsets: IndexSet) {
-        let habitsToDelete = offsets.map { habits[$0] }
+        let habitsToDelete = offsets.map { sortedHabits[$0] }
         let idsToDelete = habitsToDelete.map { $0.id }
         
         completions.removeAll { idsToDelete.contains($0.habitId) }
-        habits.remove(atOffsets: offsets)
+        habits.removeAll { idsToDelete.contains($0.id) }
         saveData()
     }
     
     func isHabitCompletedToday(habitID: UUID) -> Bool {
         completions.contains { $0.habitId == habitID && Calendar.current.isDateInToday($0.date) }
     }
-    
-    // MARK: - Data Persistence
     
     private var documentsDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -127,7 +183,6 @@ class ContentViewModel: ObservableObject {
             let data = try Data(contentsOf: fileURL)
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
-            print("Could not load data from \(filename). This is normal on first launch.")
             return nil
         }
     }

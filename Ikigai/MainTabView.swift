@@ -1,27 +1,14 @@
-//
-//  MainTabView.swift
-//  Ikigai
-//
-//  Created by SAHIL KHATRI on 16/06/25.
-//
-
 import SwiftUI
 
 struct MainTabView: View {
     @StateObject private var viewModel = ContentViewModel()
     @State private var selectedTab = 0
-    
-    // The init() block is a good place to configure the global appearance
-    // of UI components like the Tab Bar.
-    init() {
-        // This makes sure the background is always applied, even in lists.
-        UITabBar.appearance().scrollEdgeAppearance = UITabBarAppearance()
-    }
+    @State private var isShowingDeleteAlert = false
     
     var body: some View {
         NavigationView {
             TabView(selection: $selectedTab) {
-                ContentView(viewModel: viewModel)
+                ContentView(viewModel: viewModel, selectedTab: $selectedTab)
                     .tabItem {
                         Label("Habits", systemImage: "checklist")
                     }
@@ -37,22 +24,44 @@ struct MainTabView: View {
             .toolbar {
                 if selectedTab == 0 {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Text("Level \(viewModel.userProfile.level)")
-                            .font(.headline)
-                            .foregroundColor(Theme.color(for: viewModel.userProfile.level))
+                        Button(action: { selectedTab = 1 }) {
+                            Text("Level \(viewModel.userProfile.level)")
+                                .font(.headline)
+                                .foregroundColor(Theme.color(for: viewModel.userProfile.level))
+                        }
                     }
                     
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Button(action: { viewModel.isShowingAddHabitSheet = true }) {
                             Image(systemName: "plus")
-                                .foregroundColor(Theme.secondary)
+                        }
+                        
+                        Menu {
+                            Section(header: Text("Sort By")) {
+                                Button("Date Created", action: { viewModel.sortOrder = .creationDate })
+                                Button("Name", action: { viewModel.sortOrder = .name })
+                            }
+                            
+                            Button("Mark All as Complete", systemImage: "checkmark.circle.fill", action: { viewModel.markAllAsComplete() })
+                            
+                            Button("Delete All Habits", systemImage: "trash", role: .destructive, action: {
+                                isShowingDeleteAlert = true
+                            })
+                            
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
                     }
                 }
             }
-            // --- NEW: These modifiers apply the frosted glass effect to the Tab Bar ---
-            .toolbarBackground(.visible, for: .tabBar) // Ensures the background is always visible
-            .toolbarBackground(.regularMaterial, for: .tabBar) // Applies the translucent material
+            .alert("Are you sure?", isPresented: $isShowingDeleteAlert) {
+                Button("Delete All", role: .destructive) {
+                    viewModel.deleteAllHabits()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will permanently delete all of your habits and progress. This action cannot be undone.")
+            }
         }
     }
 }

@@ -1,21 +1,13 @@
-//
-//  ContentView.swift
-//  Ikigai
-//
-//  Created by SAHIL KHATRI on 15/06/25.
-//
-
 import SwiftUI
 import ConfettiSwiftUI
 
 struct ContentView: View {
     @ObservedObject var viewModel: ContentViewModel
+    @Binding var selectedTab: Int
     
     var body: some View {
-        // --- UPDATED: The list now uses NavigationLink to go to the detail view ---
         List {
-            ForEach(viewModel.habits) { habit in
-                // We wrap the entire row in a NavigationLink
+            ForEach(viewModel.sortedHabits) { habit in
                 NavigationLink(destination: HabitDetailView(viewModel: viewModel, habit: habit)) {
                     HabitRowView(
                         habit: habit,
@@ -30,6 +22,11 @@ struct ContentView: View {
                 .listRowBackground(Color.clear)
             }
             .onDelete(perform: viewModel.deleteHabit)
+            
+            Spacer()
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .frame(height: 60)
         }
         .listStyle(PlainListStyle())
         .scrollContentBackground(.hidden)
