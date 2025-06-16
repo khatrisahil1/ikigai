@@ -1,4 +1,3 @@
-
 //
 //  MainTabView.swift
 //  Ikigai
@@ -27,15 +26,14 @@ struct MainTabView: View {
                     }
                     .tag(1)
             }
-            // --- THE FIX ---
-            // The title and toolbar are now restored and will work correctly.
             .navigationTitle(selectedTab == 0 ? "Today's Habits" : "Insights")
             .toolbar {
                 if selectedTab == 0 {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Text("Level \(viewModel.userProfile.level)")
                             .font(.headline)
-                            .foregroundColor(Theme.secondary)
+                            // --- UPDATED: Use the dynamic level color here as well ---
+                            .foregroundColor(Theme.color(for: viewModel.userProfile.level))
                     }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {

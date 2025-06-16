@@ -1,12 +1,13 @@
-//  Ikigai
+//
 //  Theme.swift
+//  Ikigai
+//
 //  Created by SAHIL KHATRI on 16/06/25.
 //
 
 import SwiftUI
 
-// This extension allows us to initialize a Color directly from a HEX string.
-// It's a handy utility to have in any project.
+// This extension for Color(hex:) remains the same.
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -35,12 +36,29 @@ extension Color {
 }
 
 
-// Here we define all the colors from your theme guide.
-// This keeps our branding consistent and easy to manage.
 enum Theme {
     static let primary = Color(hex: "#FFADAD")     // Peachy Pink
     static let secondary = Color(hex: "#A0C49D")   // Wasabi Green
     static let accent = Color(hex: "#FFF89A")      // Sunrise Yellow
     static let background = Color(hex: "#FDF6EC")  // Paper White
     static let text = Color(hex: "#2F2F2F")         // Charcoal
+    
+    // --- NEW: A predefined array of colors for different levels ---
+    static let levelColors: [Color] = [
+        Theme.secondary, // Level 1 starts with our Wasabi Green
+        .blue,
+        .purple,
+        .pink,
+        .orange,
+        .indigo,
+        .teal
+    ]
+    
+    // --- NEW: A helper function to safely get a color for any level ---
+    // It cycles through the colors if the user's level exceeds the number of colors in our array.
+    static func color(for level: Int) -> Color {
+        // We use (level - 1) because arrays are 0-indexed.
+        let index = (level - 1) % levelColors.count
+        return levelColors[index]
+    }
 }

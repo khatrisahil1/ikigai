@@ -8,6 +8,13 @@
 import Foundation
 import SwiftUI
 
+// --- THE FIX: Add 'Equatable' to the MoodStat definition ---
+struct MoodStat: Identifiable, Equatable {
+    let id = UUID()
+    let mood: String
+    let count: Int
+}
+
 class ContentViewModel: ObservableObject {
     @Published var habits: [Habit] = []
     @Published var completions: [HabitCompletionLog] = []
@@ -18,9 +25,33 @@ class ContentViewModel: ObservableObject {
     
     @Published var isShowingConfetti: Bool = false
     
+    var totalCompletions: Int {
+        return completions.count
+    }
+    
+    var uniqueDaysActive: Int {
+        let uniqueDays = Set(completions.map { Calendar.current.startOfDay(for: $0.date) })
+        return uniqueDays.count
+    }
+    
+    var moodSummary: [MoodStat] {
+        let moods = completions.compactMap { $0.mood }
+        
+        let moodCounts = moods.reduce(into: [:]) { counts, mood in
+            counts[mood, default: 0] += 1
+        }
+        
+        return moodCounts.map { MoodStat(mood: $0.key, count: $0.value) }
+                         .sorted { $0.count > $1.count }
+    }
+    
     init() {
         loadData()
     }
+    
+    // All other functions remain the same...
+    
+    // MARK: - Core Logic
     
     func toggleCompletion(for habit: Habit) {
         if isHabitCompletedToday(habitID: habit.id) {
@@ -61,6 +92,8 @@ class ContentViewModel: ObservableObject {
     func isHabitCompletedToday(habitID: UUID) -> Bool {
         completions.contains { $0.habitId == habitID && Calendar.current.isDateInToday($0.date) }
     }
+    
+    // MARK: - Data Persistence
     
     private var documentsDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
