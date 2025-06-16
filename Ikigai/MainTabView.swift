@@ -9,7 +9,6 @@ import SwiftUI
 
 struct MainTabView: View {
     @StateObject private var viewModel = ContentViewModel()
-    
     @State private var selectedTab = 0
     
     var body: some View {
@@ -27,9 +26,7 @@ struct MainTabView: View {
                     }
                     .tag(1)
             }
-            // --- WORKAROUND: We are temporarily removing the dynamic title and toolbar ---
-            // This will prevent the broken UI from appearing while we work on other features.
-            .navigationBarHidden(true)
+            .navigationBarHidden(true) // Workaround for the visual glitch
         }
     }
 }

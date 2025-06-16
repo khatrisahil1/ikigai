@@ -11,10 +11,7 @@ import ConfettiSwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel: ContentViewModel
     
-    // --- DELETED: The entire init() block and NavigationView have been removed. ---
-    
     var body: some View {
-        // The view now starts directly with the List.
         List {
             ForEach(viewModel.habits) { habit in
                 HabitRowView(
@@ -33,8 +30,6 @@ struct ContentView: View {
         .listStyle(PlainListStyle())
         .scrollContentBackground(.hidden)
         .background(Theme.background)
-        // All .navigationTitle, .toolbar, and .toolbarBackground modifiers have been removed from this file.
-        // Sheets and confetti are still triggered from here.
         .sheet(isPresented: $viewModel.isShowingAddHabitSheet) {
             AddHabitView { newHabit in
                 viewModel.habits.append(newHabit)

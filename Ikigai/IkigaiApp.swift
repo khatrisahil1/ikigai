@@ -11,7 +11,6 @@ import SwiftUI
 struct IkigaiApp: App {
     var body: some Scene {
         WindowGroup {
-            // --- UPDATED: Load our new MainTabView instead of ContentView ---
             MainTabView()
         }
     }

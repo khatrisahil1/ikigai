@@ -11,9 +11,7 @@ struct InsightsView: View {
     @ObservedObject var viewModel: ContentViewModel
     
     var body: some View {
-        // We will now use a Form to structure our stats nicely.
         Form {
-            // --- Section for Gamification ---
             Section(header: Text("Your Progress")) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Level \(viewModel.userProfile.level)")
@@ -24,7 +22,6 @@ struct InsightsView: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     
-                    // A visual progress bar for the current level
                     ProgressView(
                         value: Double(viewModel.userProfile.progressTowardsNextLevel),
                         total: 100.0
@@ -33,12 +30,11 @@ struct InsightsView: View {
                     } currentValueLabel: {
                         Text("\(viewModel.userProfile.progressTowardsNextLevel) / 100 XP")
                     }
-                    .tint(Theme.secondary) // Use our theme color for the bar
+                    .tint(Theme.secondary)
                 }
                 .padding(.vertical)
             }
             
-            // --- Section for Overall Stats (more to come) ---
             Section(header: Text("Statistics")) {
                 Text("More stats coming soon!")
             }

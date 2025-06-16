@@ -22,8 +22,6 @@ class ContentViewModel: ObservableObject {
         loadData()
     }
     
-    // MARK: - Core Logic
-    
     func toggleCompletion(for habit: Habit) {
         if isHabitCompletedToday(habitID: habit.id) {
             completions.removeAll { $0.habitId == habit.id && Calendar.current.isDateInToday($0.date) }
@@ -43,10 +41,6 @@ class ContentViewModel: ObservableObject {
                 SoundManager.shared.playSound(named: "TingSound")
                 isShowingConfetti = true
                 
-                // --- THIS IS THE NEW FIX ---
-                // We are resetting the trigger back to false after 2 seconds.
-                // This allows the confetti to be triggered again in the future.
-                // We use [weak self] as a good practice to prevent memory issues.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
                     self?.isShowingConfetti = false
                 }
@@ -55,7 +49,6 @@ class ContentViewModel: ObservableObject {
         saveData()
     }
     
-    // All other functions remain the same...
     func deleteHabit(at offsets: IndexSet) {
         let habitsToDelete = offsets.map { habits[$0] }
         let idsToDelete = habitsToDelete.map { $0.id }
@@ -68,8 +61,6 @@ class ContentViewModel: ObservableObject {
     func isHabitCompletedToday(habitID: UUID) -> Bool {
         completions.contains { $0.habitId == habitID && Calendar.current.isDateInToday($0.date) }
     }
-    
-    // MARK: - Data Persistence
     
     private var documentsDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
