@@ -1,3 +1,4 @@
+
 //
 //  MainTabView.swift
 //  Ikigai
@@ -26,7 +27,25 @@ struct MainTabView: View {
                     }
                     .tag(1)
             }
-            .navigationBarHidden(true) // Workaround for the visual glitch
+            // --- THE FIX ---
+            // The title and toolbar are now restored and will work correctly.
+            .navigationTitle(selectedTab == 0 ? "Today's Habits" : "Insights")
+            .toolbar {
+                if selectedTab == 0 {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Text("Level \(viewModel.userProfile.level)")
+                            .font(.headline)
+                            .foregroundColor(Theme.secondary)
+                    }
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: { viewModel.isShowingAddHabitSheet = true }) {
+                            Image(systemName: "plus")
+                                .foregroundColor(Theme.secondary)
+                        }
+                    }
+                }
+            }
         }
     }
 }

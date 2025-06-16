@@ -11,7 +11,11 @@ import ConfettiSwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel: ContentViewModel
     
+    // The init() block is no longer needed here.
+    
     var body: some View {
+        // --- THIS IS THE FIX ---
+        // The body no longer starts with NavigationView. It starts directly with the List.
         List {
             ForEach(viewModel.habits) { habit in
                 HabitRowView(
@@ -30,6 +34,8 @@ struct ContentView: View {
         .listStyle(PlainListStyle())
         .scrollContentBackground(.hidden)
         .background(Theme.background)
+        // All navigation and toolbar modifiers have been removed from this file.
+        // They are now correctly handled by MainTabView.
         .sheet(isPresented: $viewModel.isShowingAddHabitSheet) {
             AddHabitView { newHabit in
                 viewModel.habits.append(newHabit)
