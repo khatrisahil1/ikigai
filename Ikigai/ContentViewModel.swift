@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 
-// --- THE FIX: Add 'Equatable' to the MoodStat definition ---
 struct MoodStat: Identifiable, Equatable {
     let id = UUID()
     let mood: String
@@ -49,8 +48,6 @@ class ContentViewModel: ObservableObject {
         loadData()
     }
     
-    // All other functions remain the same...
-    
     // MARK: - Core Logic
     
     func toggleCompletion(for habit: Habit) {
@@ -69,7 +66,8 @@ class ContentViewModel: ObservableObject {
             let completedTodayCount = completions.filter { Calendar.current.isDateInToday($0.date) }.count
             
             if !habits.isEmpty && completedTodayCount == habits.count {
-                SoundManager.shared.playSound(named: "TingSound")
+                // --- UPDATED: The call now includes the file extension ---
+                SoundManager.shared.playSound(named: "TingSound", withExtension: "wav")
                 isShowingConfetti = true
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
@@ -79,6 +77,8 @@ class ContentViewModel: ObservableObject {
         }
         saveData()
     }
+    
+    // The rest of the file remains exactly the same...
     
     func deleteHabit(at offsets: IndexSet) {
         let habitsToDelete = offsets.map { habits[$0] }

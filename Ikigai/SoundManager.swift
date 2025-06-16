@@ -3,28 +3,34 @@
 //  Ikigai
 //
 //  Created by SAHIL KHATRI on 16/06/25.
-//  This class manages sound playback in the app, allowing sounds to be played by name.
+//
 
 import Foundation
 import AVFoundation
 
 class SoundManager {
-    // A single, shared instance that the whole app can use.
     static let shared = SoundManager()
     
     private var audioPlayer: AVAudioPlayer?
     
-    func playSound(named soundName: String) {
-        // Find the sound file in our app's bundle.
-        guard let url = Bundle.main.url(forResource: soundName, withExtension: nil) else {
-            print("Error: Could not find sound file named \(soundName)")
+    // --- UPDATED: The function now accepts a file extension ---
+    func playSound(named soundName: String, withExtension fileExtension: String) {
+        // --- UPDATED: The url call now uses both the name and the extension ---
+        guard let url = Bundle.main.url(forResource: soundName, withExtension: fileExtension) else {
+            print("Error: Could not find sound file named \(soundName).\(fileExtension)")
             return
         }
         
         do {
-            // Initialize the audio player with the sound file.
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default)
+            try session.setActive(true)
+        } catch {
+            print("Failed to set up audio session: \(error.localizedDescription)")
+        }
+        
+        do {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
-            // Play the sound.
             audioPlayer?.play()
         } catch {
             print("Error playing sound: \(error.localizedDescription)")
