@@ -11,6 +11,13 @@ struct MainTabView: View {
     @StateObject private var viewModel = ContentViewModel()
     @State private var selectedTab = 0
     
+    // The init() block is a good place to configure the global appearance
+    // of UI components like the Tab Bar.
+    init() {
+        // This makes sure the background is always applied, even in lists.
+        UITabBar.appearance().scrollEdgeAppearance = UITabBarAppearance()
+    }
+    
     var body: some View {
         NavigationView {
             TabView(selection: $selectedTab) {
@@ -32,7 +39,6 @@ struct MainTabView: View {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Text("Level \(viewModel.userProfile.level)")
                             .font(.headline)
-                            // --- UPDATED: Use the dynamic level color here as well ---
                             .foregroundColor(Theme.color(for: viewModel.userProfile.level))
                     }
                     
@@ -44,6 +50,9 @@ struct MainTabView: View {
                     }
                 }
             }
+            // --- NEW: These modifiers apply the frosted glass effect to the Tab Bar ---
+            .toolbarBackground(.visible, for: .tabBar) // Ensures the background is always visible
+            .toolbarBackground(.regularMaterial, for: .tabBar) // Applies the translucent material
         }
     }
 }
