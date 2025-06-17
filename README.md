@@ -1,6 +1,6 @@
 # Ikigai 🧭
 
-A mindful habit tracker designed to be your lifestyle compass.
+A mindful habit tracker designed to be your lifestyle compass. 
 
 ### Core Idea
 
